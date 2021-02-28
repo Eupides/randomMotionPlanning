@@ -1,3 +1,4 @@
+import Algorithm.Dijkstra;
 import Algorithm.GraphCreator;
 import Algorithm.GraphEdge;
 import TexLib.TikZForms;
@@ -17,8 +18,8 @@ public class Main {
         System.out.println("Create Obstacles");
 
         Rectangle left = new Rectangle(0,50,21,11);
-        Rectangle mid = new Rectangle(25,50,26,11);
-        Rectangle right = new Rectangle(60,50,36,31);
+        Rectangle mid = new Rectangle(25,50,31,11);
+        Rectangle right = new Rectangle(60,50,38,31);
 
         ArrayList<Rectangle> rects = new ArrayList<>();
         rects.add(left);
@@ -34,47 +35,74 @@ public class Main {
         grid.add(rectangleTopRight);
         grid.add(rectangleMiddle);
 
-        Scanner scan = new Scanner(System.in);
-        GraphCreator pointC = new GraphCreator(100, grid);
 
-        /*pointC.points.put(9499,new Point(94,99));
+        // go over multiple times
+        int range = 10;
+        int extraScan = 1;
+        int maxPoints = 250;
+        int extraPoints = maxPoints/20;
+        int successes = 0;
+        int failures = 0;
+        int tries = 1000;
+        Point start = new Point(50, 5);
+        Point end = new Point(50, 90);
+        //first ist 50,5 ... 50,90
+        //second ist 50,5 ... 10 90;
+        //third ist 10,10 ... 90,90
 
-        pointC.createEdgesOfPoint(new Point(92,0),10);
-        ArrayList<GraphEdge> edges = pointC.getEdges();*/
+        HashMap<Integer, Point> points = new HashMap<>();
+        ArrayList<GraphEdge> edges = new ArrayList<>();
+        ArrayList<Point> shortestPath = new ArrayList<>();
+        long startTime = System.currentTimeMillis();
 
+        for(int i = 0; i < tries; i++) {
+            GraphCreator graph = new GraphCreator(100, grid);
 
-        System.out.println("sekundenanzahl für erstellung der punkte");
-        int seconds = scan.nextInt();
-        System.out.println("Maxpunkte: ");
-        int maxPoints = scan.nextInt();
-        pointC.createPoints(seconds, maxPoints, 15);
+            if(extraScan == 1) {
+                //create less points so they can be added later
+                graph.createPoints(maxPoints-extraPoints, range);
 
-        HashMap<Integer, Point> points = pointC.getPointMap();
-        System.out.println(points.size());
-
-        ArrayList<GraphEdge> edges = pointC.getEdges();
-        System.out.println(edges.size());
-
-        for(GraphEdge edge : edges) {
-            if(edge.a.y < edge.b.y) {
-                if(edge.b.y - edge.a.y > 15) {
-                    System.out.println("wrong: A("+edge.a.x+","+edge.a.y+") B("+edge.b.x+","+edge.b.y+")");
-                }
+                Point leftPoint = new Point(23, 55);
+                graph.addAdditionalPoints(extraPoints/2, leftPoint, range, 15);
+                Point rightPoint = new Point(58, 60);
+                graph.addAdditionalPoints(extraPoints/2, rightPoint, range, 15);
             } else {
-                if(edge.a.y - edge.b.y > 15) {
-                    System.out.println("wrong: A("+edge.a.x+","+edge.a.y+") B("+edge.b.x+","+edge.b.y+")");
-                }
+                graph.createPoints(maxPoints, range);
+            }
+
+            Dijkstra dijkstra = new Dijkstra(graph, range);
+            dijkstra.tryConnecting(start, end);
+
+            if(dijkstra.createShortestPath().size() == 1) {
+                failures++;
+            } else {
+                successes++;
+                points = graph.getPointMap();
+                edges = graph.getEdges();
+                shortestPath = dijkstra.createShortestPath();
+            }
+
+            if(i % 100 == 0) {
+                System.out.println(i);
             }
         }
+        long stopTime = System.currentTimeMillis();
+        long elapsedTime = stopTime - startTime;
+        System.out.println(elapsedTime/1000);
+
+        System.out.println("Failures: "+failures);
+        System.out.println("Successes: "+successes);
+
 
         String graphic = TikZForms.getPointString(points);
+        graphic += TikZForms.getBorderOfGridString(100, 100);
         graphic += TikZForms.getTikZRectanglesString(rects);
         graphic += TikZForms.getEdgeString(edges);
+        //graphic += TikZForms.getTikZWorkingPathString(shortestPath);
         try{
-            TexFileWriter.writeTexFile("C:\\Users\\stret\\Documents\\uni\\WS2021\\geo_sem\\arbeit\\grafiken\\points.tex",graphic);
+            TexFileWriter.writeTexFile("C:\\Users\\stret\\Documents\\uni\\WS2021\\geo_sem\\arbeit\\grafiken\\roadmap.tex",graphic);
         } catch(IOException ioe) {
             System.out.println(ioe.getMessage());
         }
-
     }
 }

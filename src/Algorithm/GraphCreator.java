@@ -9,7 +9,7 @@ import java.util.Random;
 public class GraphCreator {
     private int gridSize;
     private Area confSpace;
-    public HashMap<Integer, Point> points;
+    private HashMap<Integer, Point> points;
     private Random rand;
     private ArrayList<GraphEdge> edges;
 
@@ -25,6 +25,17 @@ public class GraphCreator {
         int x = this.rand.nextInt(this.gridSize);
         int y = this.rand.nextInt(this.gridSize);
 
+        this.addPoint(x,y,range);
+    }
+
+    private boolean createRandomPointInArea(Point center, int range, int creationRange) {
+        int x = this.rand.nextInt(creationRange*2) + (center.x-creationRange);
+        int y = this.rand.nextInt(creationRange*2) + (center.y-creationRange);
+
+        return this.addPoint(x,y,range);
+    }
+
+    public boolean addPoint(int x, int y, int range) {
         if(!confSpace.contains(x,y)) {
             Integer hash = x*100;
             hash += y;
@@ -33,15 +44,25 @@ public class GraphCreator {
                 points.put(hash, newPoint);
 
                 this.createEdgesOfPoint(newPoint, range);
+
+                return true;
             }
+        }
+        return false;
+    }
+
+    public void createPoints(int maxPoints, int range) {
+        while(this.points.size() < maxPoints) {
+            this.createRandomPoint(range);
         }
     }
 
-    public void createPoints(int timeInSeconds, int maxPoints, int range) {
-        long t = System.currentTimeMillis();
-        long end = t+(timeInSeconds*1000);
-        while(/*System.currentTimeMillis() < end && */this.points.size() < maxPoints) {
-            this.createRandomPoint(range);
+    public void addAdditionalPoints(int maxPoints, Point center, int range, int creationRange) {
+        int pointCounter = 0;
+        while(pointCounter < maxPoints) {
+            if(this.createRandomPointInArea(center, range, creationRange)) {
+                pointCounter++;
+            }
         }
     }
 

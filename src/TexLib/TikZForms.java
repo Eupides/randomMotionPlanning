@@ -3,6 +3,7 @@ package TexLib;
 import Algorithm.GraphEdge;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -30,6 +31,18 @@ public class TikZForms {
         return output;
     }
 
+    public static String getTikZWorkingPathString(ArrayList<Point> points) {
+        String output = "\\draw[green] ";
+        for(int i = 0; i < points.size(); i++) {
+            if(i == points.size() - 1) {
+                output += " (" + points.get(i).x/TikZForms.scale + "," + points.get(i).y/TikZForms.scale + ");";
+            } else {
+                output += " (" + points.get(i).x/TikZForms.scale + "," + points.get(i).y/TikZForms.scale + ") --";
+            }
+        }
+        return output;
+    }
+
     public static String getPointString(HashMap<Integer, Point> points) {
         String output = "";
         for(Point point : points.values()) {
@@ -44,6 +57,15 @@ public class TikZForms {
         for(GraphEdge edge : edges) {
             output += "\\draw ("+edge.a.x/TikZForms.scale+","+edge.a.y/TikZForms.scale+") -- ("+edge.b.x/TikZForms.scale+","+edge.b.y/TikZForms.scale+");";
         }
+
+        return output;
+    }
+
+    public static String getBorderOfGridString(int x, int y) {
+        String output = "\\draw (0,0) -- ("+x/TikZForms.scale+",0);"; // unten
+        output += "\\draw (0,0) -- (0,"+y/TikZForms.scale+");"; // links
+        output += "\\draw ("+ x/TikZForms.scale +",0) -- ("+x/TikZForms.scale+","+y/TikZForms.scale+");"; // rechts
+        output += "\\draw (0,"+x/TikZForms.scale+") -- ("+x/TikZForms.scale+","+y/TikZForms.scale+");"; // oben
 
         return output;
     }
